@@ -1,200 +1,230 @@
 //RESIDENTIAL BUILDING: 1 column, two elevators, 10 floors
 ----------------------------------------------------------
-//VARIABLES
-Column 
-[shaftDoorA][n]     [shaftDoorB][n]   //status
-    [1]                 [1]           opened, closed
-    [2]                 [2]
-    [3]                 [3]
-    [4]                 [4]
-    [5]                 [5]
-    [6]                 [6]
-    [7]                 [7]
-    [8]                 [8]
-    [9]                 [9]
-    [10]                [10]
-
-Elevators              //status                                   
-[elevatorA]            goingUp, goingDown, idle, unavailable(fullCapicity)
-[elevatorB]            proximity: closest 
-
-CallButton             //status
-[UP]                   pressed, released
-[DOWN]             
-
-Doors                  //status
-[elevatorDoorA]       opened, closed
-[elevatorDoorB]
-
-FloorRequestButton
-[floorReqBtn][n]       //status
-[1]       [6]          pressed
-[2]       [7]
-[3]       [8]
-[4]       [9]
-[5]       [10]
-----------------------------------------------------------
-//Extra elements
-DoorButton~
-[dBtnOpen]          //status
-[dBtnClose]          pressed, released
-
-Measure load~
-[loadSensor]        //status
-                    maxCapacity, fullCapicity, occupied, unoccupied
------------------------------------------------------------
-direction_of_callButton
-check_elevator_availability
-elevator_proximity
-elevator_direction
-on_the_way
-positionOfElevatorA
-finish_last_trip
-elevator_proximity_last_position
-
-call_elevatorA
-        WHILE positionOfElevatorA is NOT EQUAL to myFloor 
-            INCREMENT positionOfElevatorA to myFloor by calculating
-            positionOfElevatorA + (myFloor - positionOfElevatorA)
-        ENDWHILE
-
-call_elevatorB
-add_queueA/B
-        Allow elevatorA to complete its last trips
-        WHILE positionOfElevatorA is NOT EQUAL to myFloor 
-            INCREMENT positionOfElevatorA to myFloor by calculating
-            positionOfElevatorA + (myFloor - positionOfElevatorA)
-        ENDWHILE
-
-insert_elevatorA/B
-        Stoping to pick up passengers in between trips
-
-
-// "Request an elevator to myFloor" //
-
-SEQUENCE callButton is Pressed
-        OBTAIN myFloor and direction_of_callButton
-        CALL check_elevator_availability
-             IF both elevatorA AND elevatorB is available THEN
-                COMPUTE elevator_proximity of both elevators by calculating 
-                            abs(positionOfElevatorA - myFloor) 
-                            AND
-                            abs(positionOfElevatorB - myFloor)
-                IF elevatorA is closer than elevatorB THEN
-                    CALL elevator_direction of elevatorA
-                    IF elevator_direction of elevatorA EQUALS direction_of_callButton THEN
-                            CALL on_the_way USING positionOfElevatorA and myFloor
-                                    IF  myFloor is on_the_way THEN
-                                            CALL call_elevatorA
-                                    ELSE
-                                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorA
-                                             to
-                                        finish_last_trip AND last_position of elevatorB
-                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorA < 
-                                            finish_last_trip + elevator_proximity_last_position of elevatorB THEN
-                                            CALL add_queueA
-                                        ELSE
-                                            CALL add_queueB
-                                        ENDIF
-                                    ENDIF
-
-                    ELSE
-                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorA
-                                             to
-                                        finish_last_trip AND last_position of elevatorB
-                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorA < 
-                                            finish_last_trip + elevator_proximity_last_position of elevatorB THEN
-                                            CALL add_queueA
-                                        ELSE
-                                            CALL add_queueB
-                                        ENDIF
-                    ENDIF
-                ELSE
-                    CALL elevator_direction of elevatorB
-                    IF elevator_direction of elevatorB EQUALS direction_of_callButton THEN
-                            CALL on_the_way USING positionOfElevatorB and myFloor
-                                    IF  myFloor is on_the_way THEN
-                                            CALL call_elevatorB
-                                    ELSE
-                                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorB
-                                             to
-                                        finish_last_trip AND last_position of elevatorA
-                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorB < 
-                                            finish_last_trip + elevator_proximity_last_position of elevatorA THEN
-                                            CALL add_queueB
-                                        ELSE
-                                            CALL add_queueA
-                                        ENDIF
-                                    ENDIF
-                ENDIF
-
-
-            ELSE IF 
-                    only elevatorA is available
-                    CALL elevator_direction of elevatorA
-                         IF   elevator_direction EQUALS callButton AND myFloor is on_the_way THEN
-                              CALL insert_elevatorA
-                         ELSE
-                              CALL add_queueA
-                         ENDIF
-
-            ELSE IF 
-                    only elevatorB is available
-                    CALL elevator_direction of elevatorDoorB
-                         IF   elevator_direction EQUALS callButton AND myFloor is on_the_way THEN
-                              CALL insert_elevatorB
-                         ELSE
-                              CALL add_queueB
-                         ENDIF
-            ENDIF
-
-
-
-       
-        
-
-    IF callButton = UP THEN 
-        
-        
-         ELSE 
-         CALL goingDown
-        COMPARE my floor to position of elevatorA and elevatorB
-        elevatorMoveUp
-
+SEQUENCE initialize
+   CALL check_battery_power
+   IF battery_status = low: TRUE THEN
+       DISPLAY red flashing light
+       ALERT "Turn off battery"
+   ELSE
+       CALL intialize_elevator_status
+   END IF
+ 
+   FOR EACH callButton IN
+       SET callButton = {
+           direction
+           currentFloor
+           light:off
+       }
+  
+   FOR EACH column IN building
+   SET column = {
+       arrayOfElevators(id #):
+   }
+ 
+ 
+   FOR EACH elevators IN column
+   SET elevator = {
+       state: stopped (other parameters: moving)
+       status: idle (other parameters: called)
+       available:true
+       currentFloor: 1
+       floorButtons: {
+           light
+           requestedFloor
+       }
+       requestList = empty
+       doorStatus: closed
+   }
+ 
 END SEQUENCE
 
-//Floor Request Button
-SEQUENCE [floorReqBtn][n] is pressed
-
-goingDown 
-       elevator =  ELEVATOR + 1
-        FloorRequestPosition 
-
-
-goingUp
-       myFloor + 1
-       FloorRequestPosition 
+---------------------------------------------------------------BUTTONS-----------------------------------------------------------
+ 
+' Someone presses call button'
+SEQUENCE callButton pressed USING column, direction, floor
+   GET direction and floor from callButton
+   DISPLAY light:ON
+   ADD direction and floor to floorWaitList
+   CALL find_elevator
+END SEQUENCE
 
 
-SEQUENCE [elevatorDoor][A/B] is opened
+'Someone presses request floor button'
+SEQUENCE request_button pressed
+   GET requestedFloor
+   DISPLAY light:ON
+   IF   elevator.direction is = UP AND requestedFloor < elevator.currentFloor THEN
+        ADD/PUSH requestedFloor to the end of elevator.requestList
+        DO NOT SORT REQUEST LIST
+
+   ELSE IF 
+        elevator.direction is = UP AND requestedFloor > elevator.currentFloor THEN
+        ADD/PUSH requestedFloor to the end of elevator.requestList
+        CALL sort_requestList
+   ELSE IF
+        elevator.direction is = DOWN AND requestedFloor > elevator.currentFloor THEN
+        ADD/PUSH requestedFloor to the end of elevator.requestList
+        DO NOT SORT REQUEST LIST
+   ELSE 
+        elevator.direction is = DOWN AND requestedFloor < elevator.currentFloor THEN
+        ADD/PUSH requestedFloor to the end of elevator.requestList
+        CALL sort_requestList
+END SEQUENCE
+ -------------------------------------------------------------elevator----------------------------------------------------------------
+
+' Find elevator'
+SEQUENCE find_elevator USING elevator
+   GET ID of elevators that are available
+   FOR EACH available elevators
+       COMPUTE calc_elevatorProximity USING elevator.currentFloor and callButton.currentFloor RETURNING elevatorProximity
+       GET elevator.state
+       IF      ALL elevators are idle THEN
+               GET ID of elevator with the smallest elevatorProximity
+               ADD callButton.floor to elevator.requestList
+               CALL sort_requestList
+               CALL move_elevator
+      
+       ELSE IF
+               SOME elevator.state = idle AND elevator.state = moving THEN
+               COMPUTE find_direction_of_elevator USING elevator.requestList AND elevator.currentFloor RETURNING elevator.direction of all elevators
+               IF elevator.direction = callButton.direction THEN
+                   COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor RETURNING TRUE
+               ELSE
+                   RETURN on_the_way = FALSE
+               END IF
+ 
+               IF elevator is on_the_way = TRUE AND elevatorProximity < elevatorProximity of elevator.state = idle
+                   GET ID of elevator.state TRUE
+                   ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               ELSE IF elevator is on_the_way = TRUE AND elevatorProximity > elevatorProximity of elevator.state = idle
+                   GET ID of elevator.state = idle
+                   ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               ELSE IF elevator is on_the_way = TRUE AND elevatorProximity = elevatorProximity of elevator.state = idle
+                   GET ID of elevator.state = idle
+                   ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               ELSE
+                   GET ID of elevator.state = idle
+                   ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               END IF
+      
+       ELSE
+               ALL elevator.state = moving THEN
+               COMPUTE find_direction_of_elevator USING elevator.requestList AND elevator.currentFloor RETURNING elevator.direction of all elevators
+               IF elevator.direction = callButton.direction THEN
+                   COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor RETURNING TRUE
+               ELSE
+                   RETURN on_the_way = FALSE
+               END IF
+ 
+               GET ID of elevator is on_the_way = FALSE
+               COMPUTE travel_time USING elevator.requestList.length-1 AND elevator.currentFloor AND callButton RETURNING travel_time_with_elevatorProximity
+ 
+               IF elevatorProximity of elevator is on_the_way = TRUE < travel_time_with_elevatorProximity of elevator is on_the_way = FALSE
+                   GET ID of of elevator is on_the_way = TRUE
+                   PUSH/ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               ELSE
+                   GET ID of of elevator is on_the_way = FALSE
+                   PUSH/ADD callButton.floor to this elevator.requestList
+                   CALL sort_requestList
+                   CALL move_elevator
+               END IF
+END SEQUENCE
+
+ 
+' sort_requestList '
+SEQUENCE sort_requestList USING elevator.requestList 
+    COMPUTE find_direction_of_elevator USING 1st item on elevator.requestList AND elevator.currentFloor RETURNING elevator.direction
+        IF      elevator.direction = UP THEN
+                RETURN elevator.requestList in descending order (from smallest to largest)
+                PUSH ANYTHING less than elevator.currentFloor to last in elevator.requestList
+                
+        ELSE IF elevator.direction = DOWN THEN
+                RETURN elevator.requestList in descending order (from smallest to largest)
+                PUSH ANYTHING more than elevator.currentFloor to last in elevator.requestList
+        ELSE
+                elevator.direction = NULL THEN
+                RETURN elevator.requestList = empty
+        END IF
+END SEQUENCE
 
 
+' Elevator moves to destinated floor'
+SEQUENCE move_elevator USING elevator.direction AND elevator.currentFloor AND elevator.requestList
+    IF  elevator.direction = UP THEN
+        GET first item on elevator.requestList
+        WHILE elevator.currentFloor < first item on elevator.requestList 
+            INCREMENT elevator.currentFloor by 1
+        END WHILE
+        CHECK elevator.currentFloor = first item on elevator.requestList is TRUE
+            IF  TRUE THEN 
+                POP/REMOVE first item on elevator.requestList
+                CALL open_elevator_door
+            ELSE 
+                WHILE elevator.currentFloor < first item on elevator.requestList 
+                INCREMENT elevator.currentFloor by 1
+                END WHILE
+            END IF
 
+    ELSE
+        elevator.direction = DOWN THEN
+        GET first item on elevator.requestList
+        WHILE elevator.currentFloor > first item on elevator.requestList 
+            DECREMENT elevator.currentFloor by 1
+        END WHILE
+        CHECK elevator.currentFloor = first item on elevator.requestList is TRUE
+            IF  TRUE THEN 
+                POP/REMOVE first item on elevator.requestList
+                CALL open_elevator_door
+            ELSE 
+                WHILE elevator.currentFloor > first item on elevator.requestList 
+                DECREMENT elevator.currentFloor by 1
+                END WHILE
+            END IF
+    END IF
+END SEQUENCE
 
---------------------------------------------------------------
-PSEUDO CODE FUNCTION
+---------------------------------------------------------------door--------------------------------------------------------------         
+' Open door'
+SEQUENCE open_elevator_door
+    CHANGE elevator.doorStatus = opened
+    WAIT 7 SECONDS
+    IF  door is clear THEN
+        CALL close_elevator_door
+    ELSE 
+        CALL open_elevator_door
+    END IF
 
-myFloor 
-IF callButton is UP
-checkAvailability
-checkProximity
-    Compare myFloor and positionOfElevator
-    IF myFloor > positionOfElevatorA then 
-       move elevatorA
-    else 
-      move elevatorB
+    WHILE door is not clear after 30 SECONDS
+    Alert "BEEEP"
+    END WHILE
+END SEQUENCE
+ 
+' Close door'
+SEQUENCE close_elevator_door
+    slowly close elevator door
+    CHANGE elevator.doorStatus = opened
+    CALL sort_requestList
+    IF   sort_requestList RETURNS elevator.requestList = no request THEN
+         SET elevator.state = IDLE
+    ELSE
+         move_elevator
+    END IF
+SEQUENCE
 
-
-
-
-request -> 
+---------------------------------------------------------------weight--------------------------------------------------------------  
+' Detect weight'
+SEQUENCE detect_weight_listener
+    WHILE weight in elevator > 500 kg 
+        SET elevator.available to FALSE
+    END WHILE
+END SEQUENCE

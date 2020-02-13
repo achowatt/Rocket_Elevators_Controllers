@@ -1,0 +1,200 @@
+//RESIDENTIAL BUILDING: 1 column, two elevators, 10 floors
+----------------------------------------------------------
+//VARIABLES
+Column 
+[shaftDoorA][n]     [shaftDoorB][n]   //status
+    [1]                 [1]           opened, closed
+    [2]                 [2]
+    [3]                 [3]
+    [4]                 [4]
+    [5]                 [5]
+    [6]                 [6]
+    [7]                 [7]
+    [8]                 [8]
+    [9]                 [9]
+    [10]                [10]
+
+Elevators              //status                                   
+[elevatorA]            goingUp, goingDown, idle, unavailable(fullCapicity)
+[elevatorB]            proximity: closest 
+
+CallButton             //status
+[UP]                   pressed, released
+[DOWN]             
+
+Doors                  //status
+[elevatorDoorA]       opened, closed
+[elevatorDoorB]
+
+FloorRequestButton
+[floorReqBtn][n]       //status
+[1]       [6]          pressed
+[2]       [7]
+[3]       [8]
+[4]       [9]
+[5]       [10]
+----------------------------------------------------------
+//Extra elements
+DoorButton~
+[dBtnOpen]          //status
+[dBtnClose]          pressed, released
+
+Measure load~
+[loadSensor]        //status
+                    maxCapacity, fullCapicity, occupied, unoccupied
+-----------------------------------------------------------
+direction_of_callButton
+check_elevator_availability
+elevator_proximity
+elevator_direction
+on_the_way
+positionOfElevatorA
+finish_last_trip
+elevator_proximity_last_position
+
+call_elevatorA
+        WHILE positionOfElevatorA is NOT EQUAL to myFloor 
+            INCREMENT positionOfElevatorA to myFloor by calculating
+            positionOfElevatorA + (myFloor - positionOfElevatorA)
+        ENDWHILE
+
+call_elevatorB
+add_queueA/B
+        Allow elevatorA to complete its last trips
+        WHILE positionOfElevatorA is NOT EQUAL to myFloor 
+            INCREMENT positionOfElevatorA to myFloor by calculating
+            positionOfElevatorA + (myFloor - positionOfElevatorA)
+        ENDWHILE
+
+insert_elevatorA/B
+        Stoping to pick up passengers in between trips
+
+
+// "Request an elevator to myFloor" //
+
+SEQUENCE callButton is Pressed
+        OBTAIN myFloor and direction_of_callButton
+        CALL check_elevator_availability
+             IF both elevatorA AND elevatorB is available THEN
+                COMPUTE elevator_proximity of both elevators by calculating 
+                            abs(positionOfElevatorA - myFloor) 
+                            AND
+                            abs(positionOfElevatorB - myFloor)
+                IF elevatorA is closer than elevatorB THEN
+                    CALL elevator_direction of elevatorA
+                    IF elevator_direction of elevatorA EQUALS direction_of_callButton THEN
+                            CALL on_the_way USING positionOfElevatorA and myFloor
+                                    IF  myFloor is on_the_way THEN
+                                            CALL call_elevatorA
+                                    ELSE
+                                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorA
+                                             to
+                                        finish_last_trip AND last_position of elevatorB
+                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorA < 
+                                            finish_last_trip + elevator_proximity_last_position of elevatorB THEN
+                                            CALL add_queueA
+                                        ELSE
+                                            CALL add_queueB
+                                        ENDIF
+                                    ENDIF
+
+                    ELSE
+                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorA
+                                             to
+                                        finish_last_trip AND last_position of elevatorB
+                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorA < 
+                                            finish_last_trip + elevator_proximity_last_position of elevatorB THEN
+                                            CALL add_queueA
+                                        ELSE
+                                            CALL add_queueB
+                                        ENDIF
+                    ENDIF
+                ELSE
+                    CALL elevator_direction of elevatorB
+                    IF elevator_direction of elevatorB EQUALS direction_of_callButton THEN
+                            CALL on_the_way USING positionOfElevatorB and myFloor
+                                    IF  myFloor is on_the_way THEN
+                                            CALL call_elevatorB
+                                    ELSE
+                                        COMPARE the time it takes to finish_last_trip AND last_position of elevatorB
+                                             to
+                                        finish_last_trip AND last_position of elevatorA
+                                        IF  finish_last_trip + elevator_proximity_last_position of elevatorB < 
+                                            finish_last_trip + elevator_proximity_last_position of elevatorA THEN
+                                            CALL add_queueB
+                                        ELSE
+                                            CALL add_queueA
+                                        ENDIF
+                                    ENDIF
+                ENDIF
+
+
+            ELSE IF 
+                    only elevatorA is available
+                    CALL elevator_direction of elevatorA
+                         IF   elevator_direction EQUALS callButton AND myFloor is on_the_way THEN
+                              CALL insert_elevatorA
+                         ELSE
+                              CALL add_queueA
+                         ENDIF
+
+            ELSE IF 
+                    only elevatorB is available
+                    CALL elevator_direction of elevatorDoorB
+                         IF   elevator_direction EQUALS callButton AND myFloor is on_the_way THEN
+                              CALL insert_elevatorB
+                         ELSE
+                              CALL add_queueB
+                         ENDIF
+            ENDIF
+
+
+
+       
+        
+
+    IF callButton = UP THEN 
+        
+        
+         ELSE 
+         CALL goingDown
+        COMPARE my floor to position of elevatorA and elevatorB
+        elevatorMoveUp
+
+END SEQUENCE
+
+//Floor Request Button
+SEQUENCE [floorReqBtn][n] is pressed
+
+goingDown 
+       elevator =  ELEVATOR + 1
+        FloorRequestPosition 
+
+
+goingUp
+       myFloor + 1
+       FloorRequestPosition 
+
+
+SEQUENCE [elevatorDoor][A/B] is opened
+
+
+
+
+--------------------------------------------------------------
+PSEUDO CODE FUNCTION
+
+myFloor 
+IF callButton is UP
+checkAvailability
+checkProximity
+    Compare myFloor and positionOfElevator
+    IF myFloor > positionOfElevatorA then 
+       move elevatorA
+    else 
+      move elevatorB
+
+
+
+
+request -> 

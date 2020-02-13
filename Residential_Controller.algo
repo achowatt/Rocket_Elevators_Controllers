@@ -6,7 +6,7 @@ SEQUENCE initialize
        ALERT "Change battery"
    ELSE
 
-        FOR EACH callButton IN
+        FOR EACH callButton
             SET callButton = {
            direction
            currentFloor
@@ -19,8 +19,8 @@ SEQUENCE initialize
         }
  
  
-        FOR EACH elevators IN column
-            SET elevator = {
+        FOR EACH elevator IN column
+        SET elevator = {
         state: stopped (other parameters: moving)
         status: idle (other parameters: occupied)
         available:true
@@ -31,6 +31,13 @@ SEQUENCE initialize
         }
         requestList = empty
         doorStatus: closed
+        }
+
+        FOR EACH shaft IN column
+        SET shaft = {
+            doorStatus: closed
+            currentFloor
+            shaftID # = elevatorID #
         }
     END IF
 END SEQUENCE
@@ -248,6 +255,8 @@ END SEQUENCE
 ---------------------------------------------------------------door--------------------------------------------------------------         
 ' Open door'                                          
 SEQUENCE open_elevator_door
+    GET shaftID and shaft.currentFoor WITH elevatorID and elevator.currentFloor
+    SET shaft.doorStatus = opened
     SET elevator.doorStatus = opened
     CALL close_elevator_door
     END WHILE
@@ -255,6 +264,9 @@ END SEQUENCE
  
 ' Close door'
 SEQUENCE close_elevator_door
+    GET shaftID and shaft.currentFoor WITH elevatorID and elevator.currentFloor
+    SET shaft.doorStatus = closed
+    SET elevator.doorStatus = closed
     SET 7 seconds timer
     IF door is not clear THEN
         CALL open_elevator_door
@@ -272,7 +284,7 @@ SEQUENCE
 ---------------------------------------------------------------weight--------------------------------------------------------------  
 ' Detect weight'
 SEQUENCE detect_weight_listener
-    WHILE weight in elevator > 500 kg 
+    WHILE weight in elevator > 700 kg
         SET elevator.available to FALSE
     END WHILE
 END SEQUENCE

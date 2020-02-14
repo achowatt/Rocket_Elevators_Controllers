@@ -42,7 +42,17 @@ SEQUENCE initialize
                 currentFloor
                 shaftID # = elevatorID #
             }
-        END IF
+
+        FOR EACH floorDisplayOutsideElevator
+            FOR EACH floor
+                FOR EACH shaft
+        SET floorDisplayOutsideElevator = {
+            light:on
+            floorDisplay ID # = shaft ID # = elevator ID #
+            floorDisplay = elevator.currentFloor
+        }
+
+    END IF
 END SEQUENCE
 
 -----------------------------------------BUTTONS----------------------------------

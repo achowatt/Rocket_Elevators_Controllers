@@ -1,10 +1,11 @@
-//CORPORATE BUILDING: 66 floors (including 6 basements), 4 columns, each columns has 3 elevators (so 12 elevators in general)
+//CORPORATE BUILDING: 66 floors (including 6 basements), 4 columns, each columns has 3 elevators
 -------------------------------------------------------------------
 SEQUENCE initialize
 FOR EACH column in building
    IF battery_status = low: TRUE THEN
        DISPLAY red flashing light
        ALERT "Change battery"
+       
    ELSE
         SET column # 1 = {
             arrayOfElevators(id #)
@@ -53,6 +54,7 @@ FOR EACH column in building
            requestList = empty
            waitList = empty
            doorStatus: closed
+           floorDisplay = current.Floor
         }
 
         FOR EACH shaft IN column
@@ -66,8 +68,23 @@ FOR EACH column in building
         SET  callElevatorPad = {
              callElevatorPad.currentFloor = Lobby (floor 1)
              direction
+                        Button 1: B1-B6
+                        Button 2: 2-20
+                        Button 3: 21-40
+                        Button 4: 41-60
              light:off
         }
+
+        FOR EACH floorDisplayOutsideElevator
+            FOR EACH floor
+                FOR EACH shaft
+        SET floorDisplayOutsideElevator = {
+            light:on
+            floorDisplay ID # = shaft ID # = elevator ID #
+            floorDisplay = elevator.currentFloor
+        }
+
+
     END IF
 
 END SEQUENCE
@@ -77,16 +94,16 @@ END SEQUENCE
 SEQUENCE callElevatorPad pressed
    GET callElevatorPad.direction from callElevatorPad
    DISPLAY light:ON
-        IF      direction = "B1-B6" THEN
+        IF      button 1 is pressed (direction = "B1-B6") THEN
                 ALERT "Go to column 1"
         ELSE IF 
-                direction = "2-20" THEN 
+                button 2 is pressed (direction = "2-20") THEN 
                 ALERT "Go to column 2"
         ELSE IF
-                direction = "21-40" THEN
+                button 3 is pressed (direction = "21-40") THEN
                 ALERT "Go to column 3"
         ELSE
-                direction = "41-60" THEN
+                button 4 is pressed (direction = "41-60") THEN
                 ALERT "Go to column 4"
         END IF
     CALL find_column
@@ -154,15 +171,16 @@ SEQUENCE find_elevator_for_lobby USING COLUMN ID, callElevatorPad.floor (lobby)
                         '//COMPARE THE PROXMITY'
                         COMPARE travel_time_with_elevatorProximity of each elevator
                         IF   
-                             CHOOSE the elevator with smaller travel_time_with_elevatorProximity 
+                             CHOOSE the elevator with the smallest travel_time_with_elevatorProximity 
                              GET ID of elevator
                         ELSE
                              some elevators have the lowest travel_time_with_elevatorProximity  THEN
-                             CHOOSE the elevator with smaller ID number
+                             CHOOSE the elevator with the smallest ID number
                              GET ID of elevator
                         END IF      
 
-                        ADD callElevatorPad.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+                        ADD callElevatorPad.floor TO elevator.waitList 
+                        CALL sort_requestList
                         CALL move_elevator
 
 --------------------------------------------FIND elevator for other floors ----------------------
@@ -296,6 +314,7 @@ END SEQUENCE
  
 'Elevator moves to destinated floor'
 SEQUENCE move_elevator
+        GET COLUMN ID
         GET elevator ID   
         GET elevator.requestList
         GET elevator.currentFloor
@@ -424,7 +443,7 @@ SEQUENCE
 -----------------------------------------Weight Listener--------------------------------------
 ' Detect weight'
 SEQUENCE detect_weight_listener
-    WHILE weight in elevator > 700 kg
+    WHILE weight in elevator > 1000 kg
         SET elevator.available to FALSE
     END WHILE
 END SEQUENCE
@@ -433,17 +452,36 @@ END SEQUENCE
 
 ' Detect time'
 SEQUENCE time_listener
-    '/EVENING RUSH HOUR'
-    WHILE time is 6:30am-9am
-        FOR EACH elevator.status = idle 
-            ADD floor 10 to elevator.requestList
-            CALL move_elevator
-    END WHILE
     '/MORNING RUSH HOUR'
-    WHILE time is 3pm-7pm
+    WHILE time is 6:30am-10am
         FOR EACH elevator.status = idle
             ADD floor 1 to elevator.requestList
             CALL move_elevator
-        END WHILE
+        ENDWHILE
+
+    '/EVENING RUSH HOUR'
+    CASE time is 3pm-7pm
+        COLUMN_1:
+            FOR EACH elevator.status = idle 
+            ADD floor B6 to elevator.requestList 'furthest floor from the Lobby'
+            CALL move_elevator
+
+        COLUMN_2:
+            FOR EACH elevator.status = idle 
+            ADD floor 20 to elevator.requestListv
+            CALL move_elevator
+
+        COLUMN_3:
+            FOR EACH elevator.status = idle 
+            ADD floor 40 to elevator.requestList
+            CALL move_elevator
+
+        COLUMN_4:
+            FOR EACH elevator.status = idle 
+            ADD floor 60 to elevator.requestList
+            CALL move_elevator
+
+    ENDCASE
+
 END SEQUENCE
 

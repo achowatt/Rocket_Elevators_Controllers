@@ -22,7 +22,8 @@ SEQUENCE initialize
  
         FOR EACH elevator IN column
             SET elevator = {
-            state: stopped (other parameters: goingUP, goingDOWN)
+            timeOfDay
+            state: stopped (other parameter: moving)
             status: idle (other parameters: occupied)
             available:true
             currentFloor: 1
@@ -49,7 +50,7 @@ END SEQUENCE
 ' Someone presses call button'
 SEQUENCE callButton pressed USING column, direction, floor
    GET direction and floor from callButton
-   DISPLAY light:ON
+   DISPLAY callButton.light:ON
    CALL find_elevator
    ADD (direction and floor of callButton) to elevator.requestList  
 END SEQUENCE '//NOTE: floor AND requested floor all go to the same
@@ -60,7 +61,8 @@ SEQUENCE FOR EACH request_button pressed
    GET requestedFloor
    DISPLAY floorButton = light:ON
    IF   elevator.status is idle THEN
-        SET elevator.status to occupied 
+        SET elevator.status to occupied
+        SET elevator.state to moving
         COMPUTE elevator.direction USING elevator.currentFloor AND first item on elevator.requestList
         ADD/PUSH requestedFloor to the end of elevator.requestList
         
@@ -102,9 +104,9 @@ SEQUENCE find_elevator USING elevator
                ADD/PUSH callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
                CALL move_elevator
       
-       ELSE 
+       ELSE     '//IF NOT IDLE'
                COMPUTE current_direction_of_elevator USING elevator.requestList[0] - elevator.currentFloor 
-               '//CHECKS IF THE ELEVATORS ARE HEADING THE SAME WAY AS CALL BUTTON (if idle = heading same way)//'
+               '//CHECK IF THE ELEVATORS ARE HEADING THE SAME WAY AS CALL BUTTON (if idle = heading same way)//'
                IF   current_direction_of_elevator = positive and callButton.direction UP THEN
                     COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
                     IF  elevator.currentFloor < callButton.currentFloor THEN
@@ -225,6 +227,18 @@ SEQUENCE move_elevator
                 INCREMENT elevator.currentFloor by 1
             END WHILE
             CALL open_elevator_door
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    GET direction of callButton
+                    IF callButton.direction = UP THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
             POP/REMOVE first item on elevator.requestList
             floorButtons = light: OFF
             SET elevator.state = stopped
@@ -245,6 +259,18 @@ SEQUENCE move_elevator
                 DECREMENT elevator.currentFloor by 1
             END WHILE    
             CALL open_elevator_door
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    GET direction of callButton
+                    IF callButton.direction = DOWN THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
             POP/REMOVE first item on elevator.requestList
             SET elevator.state = stopped
             WHEN elevator.doorStatus = opened 
@@ -262,6 +288,16 @@ SEQUENCE move_elevator
             SET elevator.state = stopped
             SET elevator.status = occupied
             POP/REMOVE first item on elevator.requestList
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
             WHEN elevator.doorStatus = opened 
                 SET timer TO 30 seconds
                 IF  elevator.doorStatus is opened > 30 seconds THEN
@@ -271,8 +307,6 @@ SEQUENCE move_elevator
                 ELSE 
                     Do nothing
                 END IF
-            
-
     END IF
 END SEQUENCE
 
@@ -281,6 +315,7 @@ SEQUENCE open_elevator_door
     GET shaftID and shaft.currentFoor WITH elevatorID and elevator.currentFloor
     SET shaft.doorStatus = opened
     SET elevator.doorStatus = opened
+    SET elevator.state = stopped
     CALL close_elevator_door
     END WHILE
 END SEQUENCE
@@ -297,13 +332,16 @@ SEQUENCE close_elevator_door
         SET elevator.doorStatus = closed
         IF  requestList = empty THEN
             SET elevator.status = idle
+            SET elevator.state = stopped
         ELSE   
             move_elevator
+            SET elevator.status = occupied
+            SET elevator.state = moving
         END IF
     END IF
 SEQUENCE
 
----------------------------------------------weight--------------------------------------
+-----------------------------------------Weight Listener--------------------------------------
 ' Detect weight'
 SEQUENCE detect_weight_listener
     WHILE weight in elevator > 700 kg
@@ -311,5 +349,20 @@ SEQUENCE detect_weight_listener
     END WHILE
 END SEQUENCE
  
+ -----------------------------------------Time Listener -----------------------------------
 
-
+' Detect time'
+SEQUENCE time_listener
+    '/EVENING RUSH HOUR'
+    WHILE time is 6:30am-9am
+        FOR EACH elevator.status = idle 
+            ADD floor 10 to elevator.requestList
+            CALL move_elevator
+    END WHILE
+    '/MORNING RUSH HOUR'
+    WHILE time is 3pm-7pm
+        FOR EACH elevator.status = idle
+            ADD floor 1 to elevator.requestList
+            CALL move_elevator
+        END WHILE
+END SEQUENCE

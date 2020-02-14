@@ -1,2 +1,59 @@
 //CORPORATE BUILDING: 66 floors (including 6 basements), 4 columns, each columns has 3 elevators (so 12 elevators in general)
------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------
+SEQUENCE initialize
+FOR EACH column in building
+   IF battery_status = low: TRUE THEN
+       DISPLAY red flashing light
+       ALERT "Change battery"
+   ELSE
+        SET column = {
+        arrayOfElevators(id #):
+        }
+
+        FOR EACH callButton
+        SET callButton = {
+            direction
+            currentFloor
+            light:off
+        }
+ 
+        FOR EACH elevators IN column
+        SET elevator = {
+           state: stopped (other parameters: moving)
+           status: idle (other parameters: occupied)
+           available:true
+           currentFloor: 1
+           floorButtons: {
+                light
+                requestedFloor
+           }
+           requestList = empty
+           doorStatus: closed
+        }
+        
+        FOR EACH shaft IN column
+        SET shaft = {
+            doorStatus: closed
+            currentFloor
+            shaftID # = elevatorID #
+        }
+    END IF
+
+END SEQUENCE
+-------------------------------------------------------------------
+'first floor lobby call button'
+//has a special call button where 
+-------------------------------------------------------------------
+COLUMN #1 // Connects Lobby to B1 - B6 (basement)
+FOR EACH 
+
+-------------------------------------------------------------------
+COLUMN #2 // Connects Lobby to 2 - 20 (above ground)
+
+-------------------------------------------------------------------
+COLUMN #3 // Connects Lobby to 21 - 40 (above ground)
+
+-------------------------------------------------------------------
+COLUMN #4 // Connects Lobby to 41 - 60 (above ground)
+
+

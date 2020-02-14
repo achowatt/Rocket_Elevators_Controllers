@@ -6,14 +6,36 @@ FOR EACH column in building
        DISPLAY red flashing light
        ALERT "Change battery"
    ELSE
-        SET column = {
-        arrayOfElevators(id #):
+        SET column # 1 = {
+            arrayOfElevators(id #)
+            Floors: Lobby, B1-B6
+        }
+
+        SET column # 2 = {
+            arrayOfElevators(id #)
+            Floors: Lobby - 20
+        }
+
+        SET column # 3 = {
+            arrayOfElevators(id #)
+            Floors: Lobby, 21-40
+        }
+
+        SET column # 4 = {
+            arrayOfElevators(id #):
+            Floors: Lobby, 41-60
         }
 
         FOR EACH callButton
         SET callButton = {
             direction
             currentFloor
+            light:off
+        }
+        
+        FOR EACH callElevatorPad
+        SET callElevatorPad = {
+            floor
             light:off
         }
  
@@ -26,34 +48,402 @@ FOR EACH column in building
            floorButtons: {
                 light
                 requestedFloor
+                waitList
            }
            requestList = empty
+           waitList = empty
            doorStatus: closed
         }
-        
+
         FOR EACH shaft IN column
         SET shaft = {
             doorStatus: closed
             currentFloor
             shaftID # = elevatorID #
         }
+
+        FOR EACH callElevatorPad (in LOBBY, 1 per column)
+        SET  callElevatorPad = {
+             callElevatorPad.currentFloor = Lobby (floor 1)
+             direction
+             light:off
+        }
     END IF
 
 END SEQUENCE
--------------------------------------------------------------------
-'first floor lobby call button'
-//has a special call button where 
--------------------------------------------------------------------
-COLUMN #1 // Connects Lobby to B1 - B6 (basement)
-FOR EACH 
+--------------------------------------------CALL BUTTONS--------------------------------------------------
 
--------------------------------------------------------------------
-COLUMN #2 // Connects Lobby to 2 - 20 (above ground)
+'Lobby call buttons'
+SEQUENCE callElevatorPad pressed
+   GET callElevatorPad.direction from callElevatorPad
+   DISPLAY light:ON
+        IF      direction = "B1-B6" THEN
+                ALERT "Go to column 1"
+        ELSE IF 
+                direction = "2-20" THEN 
+                ALERT "Go to column 2"
+        ELSE IF
+                direction = "21-40" THEN
+                ALERT "Go to column 3"
+        ELSE
+                direction = "41-60" THEN
+                ALERT "Go to column 4"
+        END IF
+    CALL find_column
+    GET column ID
+    CALL find_elevator
+END SEQUENCE
 
--------------------------------------------------------------------
-COLUMN #3 // Connects Lobby to 21 - 40 (above ground)
 
--------------------------------------------------------------------
-COLUMN #4 // Connects Lobby to 41 - 60 (above ground)
+'Call button PRESSED'
+SEQUENCE callButton pressed USING column, direction, floor
+   GET column direction and floor from callButton
+   DISPLAY light:ON
+   CALL find_elevator
+END SEQUENCE
 
+--------------------------------------------Find Column----------------------------------
+
+SEQUENCE find_column
+        GET callElevatorPad.direction
+        IF      callElevatorPad.direction = "B1-B6" THEN
+                RETURN COLUMN_1
+    
+        ELSE IF 
+                callElevatorPad.direction = "2-20" THEN 
+                RETURN COLUMN_2
+     
+        ELSE IF
+                callElevatorPad.direction = "21-40" THEN
+                RETURN COLUMN_3
+
+        ELSE IF
+                callElevatorPad.direction = "41-60" THEN
+                RETURN COLUMN_4
+
+        END IF
+--------------------------------------------Find elevator for LOBBY----------------------------------
+' Find elevator for LOBBY'
+SEQUENCE find_elevator_for_lobby USING COLUMN ID, callElevatorPad.floor (lobby)
+        GET COLUMN ID
+        FOR EACH available elevators IN COLUMN ID
+                COMPUTE elevatorProximity WITH elevator.currentFloor and callElevatorPad.floor RETURNING elevatorProximity
+                GET elevator.state
+                 IF     ALL elevators are idle THEN
+                    '//COMPARE THE PROXIMITY
+                        IF   both elevators have the same elevatorProximity THEN
+                             CHOOSE the elevator with smaller ID number
+                             GET ID of elevator
+                        ELSE
+                             CHOOSE the elevator with smaller elevatorProximity
+                             GET ID of elevator
+                        END IF      
+                        ADD callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+                        CALL move_elevator
+      
+                 ELSE  '//IF ALL ELEVATORS ARE NOT IDLE'
+                        FOR EACH elevator
+                        COMPUTE current_direction_of_elevator USING elevator.requestList[0] - elevator.currentFloor 
+                        IF current_direction_of_elevator = positive THEN 'its going up'
+                               COMPUTE travel_time_with_elevatorProximity USING elevator.requestList.length-1 AND elevator.currentFloor AND callElevatorPad.currentFloor 
+                               RETURNING total_travel_time
+
+                        ELSE IF current_direction_of_elevator = negative THEN 'its going down'
+                               SET travel_time_with_elevatorProximity = elevatorProximity
+                        
+                        '//COMPARE THE PROXMITY'
+                        COMPARE travel_time_with_elevatorProximity of each elevator
+                        IF   
+                             CHOOSE the elevator with smaller travel_time_with_elevatorProximity 
+                             GET ID of elevator
+                        ELSE
+                             some elevators have the lowest travel_time_with_elevatorProximity  THEN
+                             CHOOSE the elevator with smaller ID number
+                             GET ID of elevator
+                        END IF      
+
+                        ADD callElevatorPad.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+                        CALL move_elevator
+
+--------------------------------------------FIND elevator for other floors ----------------------
+' Find elevator'
+
+SEQUENCE find_elevator USING COLUMN ID, elevator
+   FOR EACH available elevators in COLUMN
+       COMPUTE elevatorProximity WITH elevator.currentFloor and callButton.currentFloor RETURNING elevatorProximity 
+       GET elevator.state
+       IF      ALL elevators are idle THEN
+                '//COMPARE THE PROXIMITY
+               IF   both elevators have the same elevatorProximity THEN
+                    CHOOSE the elevator with smaller ID number
+                    GET ID of elevator
+               ELSE
+                    CHOOSE the elevator with smaller elevatorProximity
+                    GET ID of elevator
+               END IF      
+               ADD/PUSH callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+               CALL move_elevator
+      
+       ELSE    '//IF ALL ELEVATORS ARE NOT IDLE'
+               COMPUTE current_direction_of_elevator USING elevator.requestList[0] - elevator.currentFloor 
+               '//CHECK IF THE ELEVATORS ARE HEADING THE SAME WAY AS CALL BUTTON (if idle = heading same way)//'
+               IF   current_direction_of_elevator = positive and callButton.direction UP THEN
+                    COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
+                    IF  elevator.currentFloor < callButton.currentFloor THEN
+                        RETURNING TRUE
+                    ELSE
+                        RETURN FALSE
+                    END IF
+
+               ELSE IF current_direction_of_elevator = negative and callButton.direction DOWN THEN
+                    COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
+                    IF elevator.currentFloor < callButton.currentFloor THEN
+                        RETURNING TRUE
+                    ELSE
+                        RETURN FALSE
+                    END IF
+
+               ELSE IF current_direction_of_elevator = positive and callButton.direction DOWN THEN
+                    SET on_the_way = FALSE
+                
+               ELSE IF current_direction_of_elevator = negative and callButton.direction UP THEN
+                    SET on_the_way = FALSE
+               
+               ELSE IF current_direction_of_elevator != negative || current_direction_of_elevator != positive THEN
+                    SET on_the_way = TRUE
+               END IF
+               
+              '//FIND MOST CONVENIENT ELEVATOR, GET ID AND ADD CALL BUTTON TO ITS REQUESTLIST'
+               IF ALL elevators that are on_the_way = TRUE THEN
+                   FOR EACH elevator that is on_the_way = TRUE
+                   COMPARE elevatorProximity of each elevator
+                   IF there is 1 elevator with the smallest elevatorProximity THEN
+                        GET ID of elevator
+                        ADD callButton.floor to this elevator.waitList
+                        CALL sort_requestList
+                        CALL move_elevator
+                   ELSE 2 or more elevatorProximity is the smallest THEN
+                        IF there is an elevator with the shortest elevator.requestList THEN
+                            GET ID of elevator
+                            ADD callButton.floor to this elevator.waitList
+                            CALL sort_requestList
+                            CALL move_elevator
+                        ELSE 
+                            GET ID of elevator
+                            CHOOSE an elevator with the smallest ID number THEN 
+                            ADD callButton.floor to this elevator.waitList
+                            CALL sort_requestList
+                            CALL move_elevator
+                        END IF
+                    END IF
+
+               ELSE IF there are elevators that are on_the_way = TRUE && elevators are on_the_way = FALSE THEN
+                       FOR EACH elevator that is on_the_way = FALSE
+                       COMPUTE travel_time USING elevator.requestList.length-1 AND elevator.currentFloor AND callButton 
+                               RETURNING travel_time_with_elevatorProximity
+                       IF (elevatorProximity of elevator is on_the_way = TRUE) < (travel_time_with_elevatorProximity of elevator is on_the_way = FALSE)
+                            GET ID of (elevator is on_the_way = TRUE)
+                            ADD callButton.floor to this elevator.waitList
+                            CALL sort_requestList
+                            CALL move_elevator
+                       ELSE
+                            GET ID of of elevator is on_the_way = FALSE
+                            ADD callButton.floor to this elevator.waitList
+                            CALL sort_requestList
+                            CALL move_elevator
+                       END IF
+               END IF
+       END IF
+END SEQUENCE
+
+-------------------------------------------Sort RequestList------------------------------------
+ 
+' sort_requestList '
+SEQUENCE sort_requestList USING elevator.requestList AND elevator.waitList
+        GET elevatorID
+        GET elevator.requestList
+        GET elevator.waitList '/where call button's floor is stored'
+        COMPUTE current_direction_of_elevator USING elevator.waitList - elevator.currentFloor
+                IF      it returns a positive number THEN
+                        RETURN UP
+                ELSE IF 
+                        it returns a negative number THEN
+                        RETURN DOWN
+                ELSE 
+                        RETURN NOT MOVING
+                END IF
+
+        IF      (current_direction_of_elevator = UP) && (elevator.waitList > elevator.currentFloor) THEN 
+                USE INSERT SORT ALGORITHM to INSERT the value of elevator.waitList into the elevator.requestList in ASCENDING ORDER
+
+        ELSE IF 
+                (current_direction_of_elevator = DOWN) && (elevator.waitList < elevator.currentFloor) THEN
+                USE INSERT SORT ALGORITHM to INSERT the value of elevator.waitList into the elevator.requestList in DESCENDING ORDER
+       
+        ELSE IF 
+                (current_direction_of_elevator = UP) && (elevator.waitList < elevator.currentFloor) THEN 
+                INSERT elevator.waitList as the last item on the elevator.requestList 
+        ELSE IF
+                (current_direction_of_elevator = DOWN) && (elevator.waitList > elevator.currentFloor) THEN 
+                INSERT elevator.waitList as the last item on the elevator.requestList 
+        ELSE
+                (current_direction_of_elevator = NOT MOVING) THEN
+                INSERT elevator.waitList in the elevator.requestList 
+        END IF
+END SEQUENCE
+
+---------------------------------------------Move Elevator------------------------------------
+ 
+'Elevator moves to destinated floor'
+SEQUENCE move_elevator
+        GET elevator ID   
+        GET elevator.requestList
+        GET elevator.currentFloor
+
+        IF elevator.currentFloor < first item on elevator.requestList THEN
+            SET elevator.state = moving
+            SET elevator.status = occupied
+            WHILE elevator.currentFloor < first item on elevator.requestList 
+                INCREMENT elevator.currentFloor by 1
+            END WHILE
+            CALL open_elevator_door
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    GET direction of callButton
+                    IF callButton.direction = UP THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
+            POP/REMOVE first item on elevator.requestList
+            floorButtons = light: OFF
+            SET elevator.state = stopped
+            WHEN elevator.doorStatus = opened 
+                SET timer TO 30 seconds
+                IF  elevator.doorStatus is opened > 30 seconds THEN
+                    WHILE elevator.doorStatus = opened 
+                        ALERT "BEEP"
+                    END WHILE
+                ELSE 
+                    Do nothing
+                END IF
+
+        ELSE IF elevator.currentFloor > first item on elevator.requestList THEN
+            SET elevator.state = moving
+            SET elevator.status = occupied
+            WHILE elevator.currentFloor > first item on elevator.requestList 
+                DECREMENT elevator.currentFloor by 1
+            END WHILE    
+            CALL open_elevator_door
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    GET direction of callButton
+                    IF callButton.direction = DOWN THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
+            POP/REMOVE first item on elevator.requestList
+            SET elevator.state = stopped
+            WHEN elevator.doorStatus = opened 
+                SET timer TO 30 seconds
+                IF  elevator.doorStatus is opened > 30 seconds THEN
+                    WHILE elevator.doorStatus = opened 
+                        ALERT "BEEP"
+                    END WHILE
+                ELSE 
+                    Do nothing
+                END IF
+
+        ELSE IF elevator.currentFloor = first item on elevator.List THEN
+            CALL open_elevator_door
+            SET elevator.state = stopped
+            SET elevator.status = occupied
+            POP/REMOVE first item on elevator.requestList
+            '/TURN OFF CALL BUTTON LIGHT'
+            DETERMINE callButton.currentFloor = elevator.currentFloor is TRUE
+                IF TRUE THEN
+                    DISPLAY callButton.light = OFF 
+                    ELSE 
+                        DO nothing
+                    END IF
+                ELSE
+                    DO nothing
+                END IF
+            WHEN elevator.doorStatus = opened 
+                SET timer TO 30 seconds
+                IF  elevator.doorStatus is opened > 30 seconds THEN
+                    WHILE elevator.doorStatus = opened 
+                        ALERT "BEEP"
+                    END WHILE
+                ELSE 
+                    Do nothing
+                END IF
+    END IF
+END SEQUENCE
+
+------------------------------------------------door------------------------------------
+SEQUENCE open_elevator_door
+    GET shaftID and shaft.currentFoor WITH elevatorID and elevator.currentFloor
+    SET shaft.doorStatus = opened
+    SET elevator.doorStatus = opened
+    SET elevator.state = stopped
+    CALL close_elevator_door
+    END WHILE
+END SEQUENCE
+ 
+' Close door'
+SEQUENCE close_elevator_door
+    GET shaftID and shaft.currentFoor WITH elevatorID and elevator.currentFloor
+    SET WAIT 7 seconds
+    IF door is not clear THEN
+        CALL open_elevator_door
+    ELSE
+        Slowly close elevator door
+        SET shaft.doorStatus = closed
+        SET elevator.doorStatus = closed
+        IF  requestList = empty THEN
+            SET elevator.status = idle
+            SET elevator.state = stopped
+        ELSE   
+            move_elevator
+            SET elevator.status = occupied
+            SET elevator.state = moving
+        END IF
+    END IF
+SEQUENCE
+
+-----------------------------------------Weight Listener--------------------------------------
+' Detect weight'
+SEQUENCE detect_weight_listener
+    WHILE weight in elevator > 700 kg
+        SET elevator.available to FALSE
+    END WHILE
+END SEQUENCE
+ 
+ -----------------------------------------Time Listener -----------------------------------
+
+' Detect time'
+SEQUENCE time_listener
+    '/EVENING RUSH HOUR'
+    WHILE time is 6:30am-9am
+        FOR EACH elevator.status = idle 
+            ADD floor 10 to elevator.requestList
+            CALL move_elevator
+    END WHILE
+    '/MORNING RUSH HOUR'
+    WHILE time is 3pm-7pm
+        FOR EACH elevator.status = idle
+            ADD floor 1 to elevator.requestList
+            CALL move_elevator
+        END WHILE
+END SEQUENCE
 

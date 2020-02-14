@@ -52,8 +52,7 @@ SEQUENCE callButton pressed USING column, direction, floor
    GET direction and floor from callButton
    DISPLAY callButton.light:ON
    CALL find_elevator
-   ADD (direction and floor of callButton) to elevator.requestList  
-END SEQUENCE '//NOTE: floor AND requested floor all go to the same
+END SEQUENCE '//NOTE: callButton go to waitList first, before they get sorted into requestList
 
 
 'Someone presses request floor button (inside elevator)'
@@ -104,7 +103,7 @@ SEQUENCE find_elevator USING elevator
                ADD/PUSH callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
                CALL move_elevator
       
-       ELSE     '//IF NOT IDLE'
+       ELSE    '//IF ALL ELEVATORS ARE NOT IDLE'
                COMPUTE current_direction_of_elevator USING elevator.requestList[0] - elevator.currentFloor 
                '//CHECK IF THE ELEVATORS ARE HEADING THE SAME WAY AS CALL BUTTON (if idle = heading same way)//'
                IF   current_direction_of_elevator = positive and callButton.direction UP THEN

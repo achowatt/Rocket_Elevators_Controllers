@@ -2,17 +2,17 @@
 -------------------------------------------------------------------
 SEQUENCE initialize
 FOR EACH column in building
+   TURN ON POWER: ON
    IF battery_status = low: TRUE THEN
        DISPLAY red flashing light
-       ALERT "Change battery"
-       
-   ELSE
-        SET column # 1 = {
-            arrayOfElevators(id #)
-            Floors: Lobby, B1-B6
-        }
-
-        SET column # 2 = {
+       ALERT "Change battery"                       
+   ELSE                                                    
+        SET column # 1 = {                                                        
+            arrayOfElevators(id #)                                                 
+            Floors: Lobby, B1-B6                                               
+        }                                                             
+                                                                               
+        SET column # 2 = {                                                        
             arrayOfElevators(id #)
             Floors: Lobby - 20
         }
@@ -140,7 +140,7 @@ SEQUENCE find_column
 
         END IF
 --------------------------------------------Find elevator for LOBBY----------------------------------
-' Find elevator for LOBBY'
+'Find elevator for LOBBY'
 SEQUENCE find_elevator_for_lobby USING COLUMN ID, callElevatorPad.floor (lobby)
         GET COLUMN ID
         FOR EACH available elevators IN COLUMN ID
@@ -155,7 +155,7 @@ SEQUENCE find_elevator_for_lobby USING COLUMN ID, callElevatorPad.floor (lobby)
                              CHOOSE the elevator with smaller elevatorProximity
                              GET ID of elevator
                         END IF      
-                        ADD callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+                        ADD callButton.floor DIRECTLY TO elevator.requestList 
                         CALL move_elevator
       
                  ELSE  '//IF ALL ELEVATORS ARE NOT IDLE'
@@ -199,12 +199,12 @@ SEQUENCE find_elevator USING COLUMN ID, elevator
                     CHOOSE the elevator with smaller elevatorProximity
                     GET ID of elevator
                END IF      
-               ADD/PUSH callButton.floor DIRECTLY TO elevator.requestList '//Each elevator has their own array of requestList
+               ADD/PUSH callButton.floor DIRECTLY TO elevator.requestList 
                CALL move_elevator
       
        ELSE    '//IF ALL ELEVATORS ARE NOT IDLE'
                COMPUTE current_direction_of_elevator USING elevator.requestList[0] - elevator.currentFloor 
-               '//CHECK IF THE ELEVATORS ARE HEADING THE SAME WAY AS CALL BUTTON (if idle = heading same way)//'
+  
                IF   current_direction_of_elevator = positive and callButton.direction UP THEN
                     COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
                     IF  elevator.currentFloor < callButton.currentFloor THEN
@@ -280,7 +280,7 @@ END SEQUENCE
 SEQUENCE sort_requestList USING elevator.requestList AND elevator.waitList
         GET elevatorID
         GET elevator.requestList
-        GET elevator.waitList '/where call button's floor is stored'
+        GET elevator.waitList 
         COMPUTE current_direction_of_elevator USING elevator.waitList - elevator.currentFloor
                 IF      it returns a positive number THEN
                         RETURN UP

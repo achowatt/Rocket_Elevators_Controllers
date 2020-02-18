@@ -10,7 +10,7 @@ SEQUENCE initialize
  
         FOR EACH callButton
            SET callButton = {
-           direction (goingUP, goingDOWN)
+           direction (UP, DOWN)
            floor
            light:off
         }
@@ -119,7 +119,7 @@ SEQUENCE find_elevator USING elevator
                IF   current_direction_of_elevator = positive and callButton.direction UP THEN
                     COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
                     IF  elevator.currentFloor < callButton.currentFloor THEN
-                        RETURNING TRUE
+                        RETURN TRUE
                     ELSE
                         RETURN FALSE
                     END IF
@@ -127,7 +127,7 @@ SEQUENCE find_elevator USING elevator
                ELSE IF current_direction_of_elevator = negative and callButton.direction DOWN THEN
                     COMPUTE on_the_way USING elevator.currentFloor and callButton.currentFloor
                     IF elevator.currentFloor < callButton.currentFloor THEN
-                        RETURNING TRUE
+                        RETURN TRUE
                     ELSE
                         RETURN FALSE
                     END IF
@@ -191,7 +191,7 @@ SEQUENCE sort_requestList USING elevator.requestList AND elevator.waitList
         GET elevatorID
         GET elevator.requestList
         GET elevator.waitList 
-        COMPUTE current_direction_of_elevator USING elevator.waitList - elevator.currentFloor
+        COMPUTE current_direction_of_elevator USING elevator.requestList - elevator.currentFloor
                 IF      it returns a positive number THEN
                         RETURN UP
                 ELSE IF 

@@ -41,10 +41,10 @@ if (batteryLife === 0) {
 
 /*-----------------------------------------------------*/
 //ELEVATOR CONSTRUCTOR function
-    function Elevator (ID,status,boolean,currentFloor,list,boolean) {
+    function Elevator (ID,status,available,currentFloor,list,boolean) {
         this.ID = ID;
         this.status = status;
-        this.available = boolean;
+        this.available = available;
         this.currentFloor = currentFloor;
         this.requestList = list;
         this.on_the_way = boolean;
@@ -180,10 +180,10 @@ function on_the_way_down(elevatorFloor,callButtonFloor){
                 //FIND MOST CONVENIENT ELEVATOR, GET ID AND ADD CALL BUTTON TO ITS WAITLIST
                 if (elevator1.on_the_way == true && elevator2.on_the_way == true){
                     if (elevatorProximity1 <= elevatorProximity2){
-                        
+                        ADD to
                     }
                     else {
-                        return elevator1.ID
+                        
                     }
                 }
             

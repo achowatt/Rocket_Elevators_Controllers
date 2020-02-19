@@ -99,7 +99,7 @@ END SEQUENCE
 
 ' Find elevator'
 SEQUENCE find_elevator USING elevator  
-   FOR EACH available elevators
+   FOR EACH available elevator
        COMPUTE elevatorProximity WITH elevator.currentFloor and callButton.currentFloor RETURNING elevatorProximity 
        GET elevator.state                            
        IF      ALL elevators are idle THEN           

@@ -1,9 +1,8 @@
 class Elevator {
     constructor(numberOfFloors) {
-        this.status = 'IDLE';  //idle or moving or opening or closing
-        this.available = true; //if it's full/not
-        this.currentFloor = 0; //floor 1-10
-        this.requestList = Array(numberOfFloors).fill(false); //todo list[array]
+        this.status = 'IDLE' //'UP','DOWN','MAINTENANCE'; 
+        this.currentFloor = 1 //floor 1-10
+        this.requestList = Array(numberOfFloors).fill(false) //todo list[array]
     }
 
     //methods
@@ -15,6 +14,7 @@ class Elevator {
             console.error(`Error: floor ${floor} does not exist`)
             return
         }
+
         this.requestList[floor - 1] = true
     }
 
@@ -24,10 +24,7 @@ class Elevator {
         })
         console.log('\n')
     }
-
 }
-
-
 
 class Controller {
     constructor(numberOfElevators, numberOfFloors) {
@@ -47,26 +44,22 @@ class Controller {
             return
         } else if (floor === this.numberOfFloors && direction === 'UP') {
             console.error(`Error: You can't go up from ${this.numberOfFloors}`)
-        } 
+        } else {
+            // step 1: find available elevators = this.elevators
+            const availableElevators = this.elevators.filter((elevator) => elevator.status !== 'MAINTENANCE')
 
-
+            console.log(availableElevators)
+        }
     }
-
-    //function chooseElevator ()
-
-
-    //requestFloorOnChosenElevator()
-
-    //move_elevator()
-
 }
-
 
 const residentialController = new Controller(2, 10)
 
-console.log(residentialController.elevators[1])
-residentialController.requestElevator('DOWN',3)
+// modify one elevator to be in maintenance
+residentialController.elevators[0].status = 'MAINTENANCE';
+console.log(residentialController.elevators)
 
+//residentialController.requestElevator('DOWN',3)
 
 // press callButton -> gets floor and direction , find the right elevator to come,
                         //add to elevator requestList

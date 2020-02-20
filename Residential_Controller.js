@@ -40,164 +40,77 @@ if (batteryLife === 0) {
 }
 
 /*-----------------------------------------------------*/
-//ELEVATOR CONSTRUCTOR function
-    function Elevator (ID,status,available,currentFloor,list,boolean) {
-        this.ID = ID;
-        this.status = status;
-        this.available = available;
-        this.currentFloor = currentFloor;
-        this.requestList = list;
-        this.on_the_way = boolean;
+class Elevator {
+    constructor(numberOfFloors) {
+        this.status = 'IDLE' //'UP','DOWN','MAINTENANCE'; 
+        this.currentFloor = 1 //floor 1-10
+        this.requestList = Array(numberOfFloors).fill(false) //todo list[array]
     }
 
-//TWO ELEVATORS in the building
-    var elevator1 = new Elevator (1,"idle",true,1,[],true);
-    var elevator2 = new Elevator (1,"idle",true,1,[],true);
-
-    
-//CALL BUTTONS for floors
-    function callButton(direction,floor) {
-        direction;
-        floor;
-        find_elevator();
-    }
-
-
-//SORT FLOOR REQUEST
-function sortElevator1RequestUP(x) {
-    elevator1.push(x);
-    elevator1.sort();
-}
- function sortElevator1RequestDOWN(x) {
-    elevator1.push(x);
-    elevator1.sort();
-    elevator1.reverse();
-}
-
-function sortElevator2RequestUP(x) {
-    elevator2.push(x);
-    elevator2.sort();
-}
- function sortElevator2RequestDOWN(x) {
-    elevator2.push(x);
-    elevator2.sort();
-    elevator2.reverse();
-}
-
-//FLOOR REQUEST button
-    function floorRequest(x) {
-        elevator1.requestList.push(x);
-        elevator1.requestList.sort();
-    }
-
-
-//on_the_way
-function on_the_way_up(elevatorFloor,callButtonFloor){
-    if (elevatorFloor < callButtonFloor) {
-        return true
-    }
-    else {
-        return false
-    }
-}
-
-function on_the_way_down(elevatorFloor,callButtonFloor){
-    if (elevatorFloor > callButtonFloor) {
-        return true
-    }
-    else {
-        return false
-    }
-}
-/*********FIND ELEVATOR ***********/
-    function find_elevator(){
-        let d = callButton.direction;
-        let f = callButton.floor;
-
-        if (elevator1.available == true && elevator2.available == true) {
-            let elevatorProximity1 = elevator1.currentFloor - f;
-            let elevatorProximity2 = elevator2.currentFloor - f;
-
-            if(elevator1.status == idle && elevator2.status == idle) {
-                if (elevatorProximity1 <= elevatorProximity2) {
-                    if (d.toUpperCase == 'UP') {
-                        sortElevator1RequestUP(f);
-                    }
-                    else {
-                        sortElevator1RequestDOWN(f);
-                    }
-                }
-                else if (elevatorProximity1 > elevatorProximity2) {
-                    if (d.toUpperCase == 'UP') {
-                        sortElevator2RequestUP(f);
-                    }
-                    else {
-                        sortElevator2RequestDOWN(f);
-                    }
-                }
-            }
-            else {
-               let current_direction_of_elevator1 = elevator1.requestList[0] - elevator1.currentFloor
-               let current_direction_of_elevator2 = elevator2.requestList[0] - elevator2.currentFloor
-                if(Math.sign(current_direction_of_elevator1) == 1 && callButton.direction == 'UP') {
-                    elevator1.on_the_way = on_the_way_up(elevator1.currentFloor,f);
-                    
-                }
-                else if (Math.sign(current_direction_of_elevator1) == -1 && callButton.direction !== 'UP') {
-                    elevator1.on_the_way = on_the_way_down(elevator2.currentFloor,f)
-
-                }
-                else if (Math.sign(current_direction_of_elevator1) == -1 && callButton.direction == 'UP'){
-                    elevator1.on_the_way = false
-
-                }
-                else if (Math.sign(current_direction_of_elevator1) == 1 && callButton.direction !== 'UP'){
-                    elevator1.on_the_way = false
-
-                }
-                else if(Math.sign(current_direction_of_elevator2) == 1 && callButton.direction == 'UP') {
-                    elevator2.on_the_way = on_the_way_up(elevator2.currentFloor,f)
-                }
-                else if (Math.sign(current_direction_of_elevator2) == -1 && callButton.direction !== 'UP') {
-                    elevator2.on_the_way = on_the_way_down(elevator2.currentFloor,f)
-                }
-                else if (Math.sign(current_direction_of_elevator2) == -1 && callButton.direction == 'UP'){
-                    elevator2.on_the_way = false
-
-                }
-                else if (Math.sign(current_direction_of_elevator2) == 1 && callButton.direction !== 'UP'){
-                    elevator2.on_the_way = false
-
-                }
-                else if (Math.sign(current_direction_of_elevator1) == 0){
-                    elevator1.on_the_way = true
-
-                }
-                else if (Math.sign(current_direction_of_elevator2) == 0){
-                    elevator2.on_the_way = true
-
-                } 
-                //FIND MOST CONVENIENT ELEVATOR, GET ID AND ADD CALL BUTTON TO ITS WAITLIST
-                if (elevator1.on_the_way == true && elevator2.on_the_way == true){
-                    if (elevatorProximity1 <= elevatorProximity2){
-                        ADD to
-                    }
-                    else {
-                        
-                    }
-                }
-            
-            }
-
-        }
-        else if (elevator1.available == true && elevator2.available !== true) {
-
-        }
-        else if (elevator1.available !== true && elevator2.available == true) {
-
+    //methods
+    requestFloor(floor) {
+        if (floor === undefined || !Number.isInteger(floor)) {
+            console.error('Error: floor must be a number')
+            return
+        } else if (floor > this.requestList.length || floor < 1) {
+            console.error(`Error: floor ${floor} does not exist`)
+            return
         }
 
-
+        this.requestList[floor - 1] = true
     }
+
+    showButtons() {
+        this.requestList.forEach((status, index) => {
+            console.log(`${index + 1}: ${status ? 'ON' : 'OFF'}`)
+        })
+        console.log('\n')
+    }
+}
+
+class Controller {
+    constructor(numberOfElevators, numberOfFloors) {
+        this.elevators = Array(numberOfElevators).fill(new Elevator(numberOfFloors))
+    }
+
+    //methods 
+    requestElevator(direction,floor) {
+        if (floor === undefined || !Number.isInteger(floor)) {
+            console.error('Error: floor must be a number')
+            return
+        } else if (floor > this.numberOfFloors || floor < 1) {
+            console.error(`Error: floor ${floor} does not exist`)
+            return
+        } else if (floor === 1 && direction === 'DOWN') {
+            console.error(`Error: You can't go down from first floor!`)
+            return
+        } else if (floor === this.numberOfFloors && direction === 'UP') {
+            console.error(`Error: You can't go up from ${this.numberOfFloors}`)
+        } else {
+            // step 1: find available elevators = this.elevators
+            const availableElevators = this.elevators.filter((elevator) => elevator.status !== 'MAINTENANCE')
+
+            console.log(availableElevators)
+        }
+    }
+}
+
+const residentialController = new Controller(2, 10)
+
+// modify one elevator to be in maintenance
+residentialController.elevators[0].status = 'MAINTENANCE';
+console.log(residentialController.elevators)
+
+//residentialController.requestElevator('DOWN',3)
+
+// press callButton -> gets floor and direction , find the right elevator to come,
+                        //add to elevator requestList
+                        //elevator moves according to requestList
+
+// press floorRequestButtons
+                // add to elevator requestList
+                //elevator moves according to requestList
+                
+// EXTRA: press open/close door            
 
 

@@ -61,8 +61,14 @@ class Controller {
         const availableElevators = this.elevators.filter((elevator) => elevator.status !== 'MAINTENANCE')
 
         // step 2: choose the closest elevator (if it's moving towards the call button)
+        //upElevators
         const upElevators = availableElevators.filter(elevator => {
             return elevator.status === 'UP' && elevator.currentFloor <= floor
+        })
+
+        //downElevators
+        const downElevators = availableElevators.filter(elevator => {
+            return elevator.status === 'DOWN' && elevator.currentFloor >= floor
         })
 
         let difference = 999
@@ -72,27 +78,89 @@ class Controller {
                 selectedElevatorId = elevator.id 
             }
         })
+        
+        downElevators.forEach(elevator=>{
+            if (elevator.currentFloor - floor < difference) {
+                difference = floor - elevator.currentFloor
+                selectedElevatorId = elevator.id
+            }
+        })
 
         // step 3: choose the closest idle elevator
+        //idleElevators
+        const idleElevators = availableElevators.filter((elevator) => elevator.status === 'IDLE')
+        idleElevators.forEach(elevator=>{
+            if (Math.abs(elevator.currentFloor - floor) < difference) {
+                difference = floor - elevator.currentFloor
+                selectedElevatorId = elevator.id
+            }
+        })
 
         // step 4: choose the elevator with last item on requestList that's closest to request floor
-        
+        //upElevators_  *not on the way as button*
+        const upElevators_ = availableElevators.filter(elevator => {
+            return elevator.status === 'UP' && elevator.currentFloor > floor
+        })
+
+        //downElevators_ *not on the way as button*
+        const downElevators_ = availableElevators.filter(elevator => {
+            return elevator.status === 'DOWN' && elevator.currentFloor < floor
+        })
+
+        var index;
+        upElevators_.forEach(elevator=>{
+            for (var x = 0; x < elevator.requestList.length; x++)
+            {   if (elevator.requestList[x] === true) {
+                    index = x;
+                }
+            
+                if (Math.abs((x + 1) - floor) < difference) {
+                    difference = floor - elevator.currentFloor
+                    selectedElevatorId = elevator.id
+                }
+            }
+            
+        })
+
+        downElevators_.forEach(elevator=>{
+            for (var x = 0; x < elevator.requestList.length; x++)
+            {   if (elevator.requestList[x] === true) {
+                    index = x;
+                    break;
+                }
+                if (Math.abs((x + 1) - floor) < difference) {
+                    difference = floor - elevator.currentFloor
+                    selectedElevatorId = elevator.id
+                }
+            }
+        })
+
         // return selected elevator
         return selectedElevatorId
+    }
+}
+
+class Button {
+    constructor(){
+
     }
 }
 
 const residentialController = new Controller(2, 10)
 
 // modify one elevator to be in maintenance
-residentialController.elevators[0].status = 'UP'
-residentialController.elevators[0].currentFloor = 3
-residentialController.elevators[1].status = 'UP'
+residentialController.elevators[0].currentFloor = 4
+residentialController.elevators[0].status = 'DOWN'
+residentialController.elevators[0].requestFloor[1] = true
+
+residentialController.elevators[1].status = 'DOWN'
+residentialController.elevators[1].currentFloor = 6
+residentialController.elevators[1].requestFloor[5] = true
 
 console.log(residentialController.elevators)
 console.log('---after call---')
 
-residentialController.requestElevator('UP', 5)
+residentialController.requestElevator('UP', 7)
 
 console.log(residentialController.elevators)
 // press callButton -> gets floor and direction , find the right elevator to come,

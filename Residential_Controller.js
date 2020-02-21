@@ -67,6 +67,26 @@ class Elevator {
         })
         console.log('\n')
     }
+
+    moveElevator(floor) {
+                if (this.currentFloor < floor){
+                    this.status = 'UP'
+                    while (this.currentFloor < floor) {
+                        this.currentFloor++;
+                        this.requestList[floor-1] = false;
+                    }
+                    this.status = 'IDLE'
+                } else if (this.currentFloor > floor) {
+                    this.status ='DOWN'
+                    while (this.currentFloor < floor) {
+                        this.currentFloor--;
+                        this.requestList[floor-1] = false;
+                    }
+                    this.status = 'IDLE'
+                }
+    }
+    
+    
 }
 
 class Controller {
@@ -93,6 +113,7 @@ class Controller {
         } else {
             const id = this.selectElevator(direction, floor)
             this.elevators[id].requestFloor(floor)
+            this.elevators[id].moveElevator(floor)
         }
     }
 
@@ -140,15 +161,15 @@ class Controller {
 
         // step 4: choose the elevator with last item on requestList that's closest to request floor
         //upElevators_  *not on the way as button*
-        const upElevators_ = availableElevators.filter(elevator => {
+        const upElevators_ = availableElevators.filter(elevator=>{
             return elevator.status === 'UP' && elevator.currentFloor > floor
         })
 
         //downElevators_ *not on the way as button*
-        const downElevators_ = availableElevators.filter(elevator => {
+        const downElevators_ = availableElevators.filter(elevator=>{
             return elevator.status === 'DOWN' && elevator.currentFloor < floor
         })
-        
+
         var index;
         upElevators_.forEach(elevator=>{
             for (var x = 0; x < elevator.requestList.length; x++)
@@ -182,32 +203,22 @@ class Controller {
     }
 }
 
-class Button {
-    constructor(){
-
-    }
-}
-
 const residentialController = new Controller(2, 10)
 
 // modify one elevator to be in maintenance
-residentialController.elevators[0].currentFloor = 4
-residentialController.elevators[0].status = 'DOWN'
-residentialController.elevators[0].requestFloor[1] = true
+residentialController.elevators[0].currentFloor = 1
+residentialController.elevators[0].status = 'IDLE'
 
-residentialController.elevators[1].status = 'DOWN'
-residentialController.elevators[1].currentFloor = 6
-residentialController.elevators[1].requestFloor[5] = true
+residentialController.elevators[1].status = 'IDLE'
+residentialController.elevators[1].currentFloor = 1
 
 console.log(residentialController.elevators)
+//show elevator currentFloor
 console.log('---after call---')
-
-residentialController.requestElevator('UP', 7)
+residentialController.requestElevator('DOWN', 10)
+residentialController.requestElevator('UP',2)
 
 console.log(residentialController.elevators)
-// press callButton -> gets floor and direction , find the right elevator to come,
-                        //add to elevator requestList
-                        //elevator moves according to requestList
 
 // press floorRequestButtons
                 // add to elevator requestList

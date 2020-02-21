@@ -46,6 +46,7 @@ class Elevator {
         }
 
         this.requestList[floor - 1] = true
+
         this.showButtons()
         this.moveElevator(floor)
 
@@ -70,12 +71,14 @@ class Elevator {
                 if (this.currentFloor < floor){
                     this.status = 'UP'
                     while (this.currentFloor < floor) {
+                        console.log("The elevator is moving from " + this.currentFloor)
                         this.currentFloor++;
                         this.requestList[floor-1] = false;
                     }
                 } else if (this.currentFloor > floor) {
                     this.status ='DOWN'
                     while (this.currentFloor > floor) {
+                        console.log("The elevator is moving from " + this.currentFloor)
                         this.currentFloor--;
                         this.requestList[floor-1] = false;
                     }
@@ -97,22 +100,34 @@ class Controller {
     //methods 
     requestElevator(direction, floor) {
         const id = this.selectElevator(direction, floor)
+        a = id + 1
+        console.log(`Elevator `+ a +` is CHOSEN`)
         this.elevators[id].requestFloor(floor)
         this.elevators[id].moveElevator(floor)
-        a = id + 1
-        console.log(`Elevator `+ a +` is CHOSEN and is moved to floor ${floor}!`)
+        console.log(`Elevator `+ a +` is moved to floor ${floor}!`)
+        console.log('\n')
         console.log(this.elevators[id])
         console.log('\n')
         this.elevators[id].openDoor();
         console.log('\n')
         console.log("You walk in.")
         console.log('\n')
+        
         var pickFloor = parseInt(prompt("Which floor are you going to?"))
-        this.elevators[id].requestFloor(pickFloor)
-        console.log('\n')
+            while (!Number.isInteger(pickFloor)) {
+                pickFloor = parseInt(prompt("Please input a number between 1 - 10"))
+            }
+            while (pickFloor > 10) {
+                pickFloor = parseInt(prompt("Please input a number between 1 - 10"))
+            }
+            while (pickFloor < 1) {
+                pickFloor = parseInt(prompt("Please input a number between 1 - 10"))
+            }
         prompt(`Move your feet, the door's about to to close`)
         console.log('\n')
         this.elevators[id].closeDoor();
+        this.elevators[id].requestFloor(pickFloor)
+        console.log(`Elevator `+ a +` is moved to floor ${pickFloor}!`)
         console.log('*********************************************')
         console.log(residentialController.elevators[id])
         console.log('*********************************************')
@@ -245,4 +260,3 @@ console.log('---after call---')
 //STEP 2: REQUEST ELEVATOR HEREꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜ
 residentialController.requestElevator('DOWN', 7) //options are UP or DOWN
 /***************************************************************************************/
-

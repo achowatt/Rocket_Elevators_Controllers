@@ -16,30 +16,17 @@ var batteryLife = Math.random();
 batteryLife = batteryLife * 2;
 batteryLife = Math.floor(batteryLife);
 
-if (batteryLife === 0) {
-    alert("*RED FLASHING LIGHT* Low Battery!")
-    var changeBattery = window.confirm("Do you want to change battery?")
-    if (changeBattery) {
-        alert("Battery CHANGED!")
+if (batteryLife === 1) {
+    alert("🚨"+ "Low Battery!" + "🚨")
+    prompt("Change battery!")
+    alert("POWER ON")
+    alert("Battery FULL")
     } else {
-    alert("Battery CHANGED!")
-    init = prompt("Type 1 to initialize: ")
-    while (init !== "1") {
-        init = prompt("Press 1 now to initialize!")
-        if (init ==="1") {
-        } else {
-        init = prompt("Press 1 to continue!")
-        }
-    }
-        alert("POWER ON")
-        alert("Battery FULL")
-    }
-
-} else {
     alert("Battery FULL")
 }
 
 /*-----------------------------------------------------*/
+
 class Elevator {
     constructor(id, numberOfFloors) {
         this.id = id
@@ -59,13 +46,24 @@ class Elevator {
         }
 
         this.requestList[floor - 1] = true
+        this.showButtons()
+        this.moveElevator(floor)
+
     }
 
     showButtons() {
         this.requestList.forEach((status, index) => {
-            console.log(`${index + 1}: ${status ? 'ON' : 'OFF'}`)
+            console.log(`${index + 1}: ${status ? 'LIGHT ON' : 'OFF'}`)
         })
         console.log('\n')
+    }
+
+    openDoor() {
+      prompt("The door opens!") 
+    }
+
+    closeDoor() {
+      prompt("The door closes!")
     }
 
     moveElevator(floor) {
@@ -75,20 +73,19 @@ class Elevator {
                         this.currentFloor++;
                         this.requestList[floor-1] = false;
                     }
-                    this.status = 'IDLE'
                 } else if (this.currentFloor > floor) {
                     this.status ='DOWN'
-                    while (this.currentFloor < floor) {
+                    while (this.currentFloor > floor) {
                         this.currentFloor--;
                         this.requestList[floor-1] = false;
                     }
-                    this.status = 'IDLE'
                 }
     }
     
     
 }
 
+var a;
 class Controller {
     constructor(numberOfElevators, numberOfFloors) {
         this.elevators = []
@@ -99,22 +96,36 @@ class Controller {
 
     //methods 
     requestElevator(direction, floor) {
-        if (floor === undefined || !Number.isInteger(floor)) {
-            console.error('Error: floor must be a number')
-            return
-        } else if (floor > this.numberOfFloors || floor < 1) {
-            console.error(`Error: floor ${floor} does not exist`)
-            return
-        } else if (floor === 1 && direction === 'DOWN') {
-            console.error(`Error: You can't go down from first floor!`)
-            return
-        } else if (floor === this.numberOfFloors && direction === 'UP') {
-            console.error(`Error: You can't go up from ${this.numberOfFloors}`)
-        } else {
-            const id = this.selectElevator(direction, floor)
-            this.elevators[id].requestFloor(floor)
-            this.elevators[id].moveElevator(floor)
-        }
+        const id = this.selectElevator(direction, floor)
+        this.elevators[id].requestFloor(floor)
+        this.elevators[id].moveElevator(floor)
+        a = id + 1
+        console.log(`Elevator `+ a +` is CHOSEN and is moved to floor ${floor}!`)
+        console.log(this.elevators[id])
+        console.log('\n')
+        this.elevators[id].openDoor();
+        console.log('\n')
+        console.log("You walk in.")
+        console.log('\n')
+        var pickFloor = parseInt(prompt("Which floor are you going to?"))
+        this.elevators[id].requestFloor(pickFloor)
+        console.log('\n')
+        prompt(`Move your feet, the door's about to to close`)
+        console.log('\n')
+        this.elevators[id].closeDoor();
+        console.log('*********************************************')
+        console.log(residentialController.elevators[id])
+        console.log('*********************************************')
+        console.log('\n')
+        prompt(`You've arrived! But before you leave, let me tell you an elevator joke! `)
+        console.log('\n')
+        console.log(`An elevator walks into a psychiatrist office and says, hey Doc I think I'm out of control. The Doctor replies your an elevator in your line of work your going to have your ups and downs!`)
+        console.log('\n')
+        console.log(`Have a good day!`)
+        console.log('\n')
+        this.elevators[id].openDoor();
+        console.log('\n')
+        this.elevators[id].closeDoor();
     }
 
     selectElevator(direction, floor) {
@@ -205,23 +216,33 @@ class Controller {
 
 const residentialController = new Controller(2, 10)
 
-// modify one elevator to be in maintenance
+//STEP 1: MODIFY THE INITIAL STATES OF ELEVATORS HEREꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜ
+//elevator1
 residentialController.elevators[0].currentFloor = 1
 residentialController.elevators[0].status = 'IDLE'
 
+//elevator2
 residentialController.elevators[1].status = 'IDLE'
 residentialController.elevators[1].currentFloor = 1
+/***************************************************************************************/
 
-console.log(residentialController.elevators)
-//show elevator currentFloor
+console.log("****************************************************")
+console.log(residentialController.elevators[0])
+console.log("****************************************************")
+console.log(residentialController.elevators[1])
+console.log("****************************************************")
+console.log("RESIDENTIAL ELEVATORS ACTIVATED")
+console.log('\n')
+var name = prompt("What is your name?")
+console.log('\n')
+console.log("Hello "+name+"! So the story goes like this:")
+console.log("Today, you came over to your friend's place to pick up a charger for your computer. But before leaving, you can't help it but to think about the building's elevator algorithm. Since everyone's been talking about elevators, you are curious to see how these elevators work. You press the button and wait for the door to open. Based on your request and the current state of the elevator, you'll see your answer below!")
+console.log('\n')
+prompt("Are you ready?")
+console.log('\n')
 console.log('---after call---')
-residentialController.requestElevator('DOWN', 10)
-residentialController.requestElevator('UP',2)
 
-console.log(residentialController.elevators)
+//STEP 2: REQUEST ELEVATOR HEREꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜ
+residentialController.requestElevator('DOWN', 7) //options are UP or DOWN
+/***************************************************************************************/
 
-// press floorRequestButtons
-                // add to elevator requestList
-                //elevator moves according to requestList
-                
-// EXTRA: press open/close door            

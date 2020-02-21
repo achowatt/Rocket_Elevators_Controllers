@@ -72,6 +72,8 @@ class Controller {
             const id = this.selectElevator(direction, floor)
             this.elevators[id].requestFloor(floor)
             this.elevators[id].moveElevator(floor)
+            this.elevators[id].showButtons()
+            this.elevators[id].requestFloor(floor)
         }
     }
 
@@ -161,25 +163,24 @@ class Controller {
     }
 }
 
+/***********************************************************************************************************/
 const residentialController = new Controller(2, 10)
 
 // modify one elevator to be in maintenance
 residentialController.elevators[0].currentFloor = 1
-residentialController.elevators[0].status = 'IDLE'
+residentialController.elevators[0].status = 'UP'
 
-residentialController.elevators[1].status = 'IDLE'
-residentialController.elevators[1].currentFloor = 1
+residentialController.elevators[1].status = 'DOWN'
+residentialController.elevators[1].currentFloor = 10
 
 console.log(residentialController.elevators)
 //show elevator currentFloor
 console.log('---after call---')
 residentialController.requestElevator('DOWN', 10)
-residentialController.requestElevator('UP',2)
 
 console.log(residentialController.elevators)
 
-// press floorRequestButtons
-                // add to elevator requestList
-                //elevator moves according to requestList
+
+
                 
 // EXTRA: press open/close door            

@@ -6,7 +6,7 @@ In order to use the files, for Javascript, it is best to run it either on the we
 The goal of the programs are to find out which elevators would arrive first when the call button is pressed. It also involves other elements such as the movement of the elevator,
 the opening and the closing of the doors, and other components that an elevator need to run smoothly.
 
-The Residential Building contains 2 elevators and 10 floors. In order to test the movement of the elevator, on:
+The Residential Building currently contains 2 elevators and 10 floors. 
 
 Javascript
 1. At the bottom of the Residential_Controller.js file, you can change the starting position of Elevator1 and Elevator2 below the

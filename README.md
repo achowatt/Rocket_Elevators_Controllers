@@ -13,6 +13,7 @@ Javascript
 comments: "#STEP 1: MODIFY THE INITIAL STATES OF ELEVATORS HERE"
 2. If you wish to change the direction and the floor of the call button. Find #STEP 2: REQUEST ELEVATOR and change the values inside the paranthesis.
 3. Copy the whole code onto repl.it and run it.
+   OR you can use this link to run the code https://repl.it/repls/ForsakenFatalTranslation
 
 Python
 1. See step 1 and 2 of Javascript

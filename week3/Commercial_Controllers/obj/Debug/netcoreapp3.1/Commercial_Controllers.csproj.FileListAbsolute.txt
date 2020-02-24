@@ -1,0 +1,10 @@
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/bin/Debug/netcoreapp3.1/Commercial_Controllers.deps.json
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/bin/Debug/netcoreapp3.1/Commercial_Controllers.runtimeconfig.json
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/bin/Debug/netcoreapp3.1/Commercial_Controllers.runtimeconfig.dev.json
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/bin/Debug/netcoreapp3.1/Commercial_Controllers.dll
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/bin/Debug/netcoreapp3.1/Commercial_Controllers.pdb
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/obj/Debug/netcoreapp3.1/Commercial_Controllers.csprojAssemblyReference.cache
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/obj/Debug/netcoreapp3.1/Commercial_Controllers.AssemblyInfoInputs.cache
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/obj/Debug/netcoreapp3.1/Commercial_Controllers.AssemblyInfo.cs
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/obj/Debug/netcoreapp3.1/Commercial_Controllers.dll
+/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/week3/Commercial_Controllers/obj/Debug/netcoreapp3.1/Commercial_Controllers.pdb

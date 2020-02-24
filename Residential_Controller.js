@@ -258,5 +258,5 @@ console.log('\n')
 console.log('---after call---')
 
 //STEP 2: REQUEST ELEVATOR HEREꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜꜜ
-residentialController.requestElevator('DOWN', 7) //options are UP or DOWN
+residentialController.requestElevator('DOWN', ) //options are UP or DOWN
 /***************************************************************************************/

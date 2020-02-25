@@ -14,7 +14,7 @@
         "outputPath": "/Users/littlepinky/Desktop/Rocket_Elevators/Rocket_Elevators_Controllers/Commercial_Controller/Commercial_Controller/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/littlepinky/.nuget/NuGet/NuGet.Config"
+          "/Users/littlepinky/.config/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"

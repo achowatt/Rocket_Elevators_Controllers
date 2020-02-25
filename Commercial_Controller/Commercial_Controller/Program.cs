@@ -6,7 +6,7 @@ namespace Commercial_Controller
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World! By Anna");
+            Console.WriteLine("Hello World!");
         }
     }
 }

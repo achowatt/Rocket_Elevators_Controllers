@@ -1,6 +1,7 @@
 package main
 
-import "fmt"
+import ("fmt"
+		"math/rand")
 
 func main() {
 	a, b := 1, 3

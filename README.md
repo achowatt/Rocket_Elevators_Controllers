@@ -1,4 +1,7 @@
-# Rocket_Elevators_Controllers
+# Rocket_Elevators_Controllers.  Please scroll to the bottom to see the information about COMMERCIAL CONTROLLER
+
+RESIDENTIAL CONTROLLER 
+-----------------------
 Contains the algorithm files for the elevator controllers for the New Rocket Elevator Solutions for both Residential and Commercial Offers.
 
 The Residential controller algorithms are written in Javascript and Python.
@@ -19,3 +22,33 @@ Python
 1. See step 1 and 2 of Javascript
 2. See step 1 and 2 of Javascript
 3. Run the file on the terminal
+
+
+COMMERCIAL CONTROLLER
+---------------------
+The Commercial controller algorithms are implemented in C# and Go Lang.
+
+To access the C# code, please:
+Go to the Commercial_Controller file.
+Then Commercial_Controller (again)
+Then, Program.cs
+
+I have written all the scenarios (1-4) in the file. But to test each of them, you must go to the bottom of the code (at the very bottom) and you'll see a section that says:
+
+            //REQUEST FLOOR (SCENERIO 1) (floor you're on,floor you're going to)
+            //columnsList[1].RequestElevator(1, 20);<--PLEASE UNCOMMENT THESE INDIVIDUALLY
+
+            //REQUEST FLOOR (SCENERIO 2)
+            //columnsList[2].RequestElevator(1, 36); <--PLEASE UNCOMMENT THESE INDIVIDUALLY
+
+            //REQUEST FLOOR (SCENERIO 3)
+            //columnsList[3].RequestElevator(54, 1);<--PLEASE UNCOMMENT THESE INDIVIDUALLY
+
+            //REQUEST FLOOR (SCENERIO 4)
+            //columnsList[0].RequestElevator(-2, 1); //(B1,1) <--PLEASE UNCOMMENT THESE INDIVIDUALLY
+            
+ Don't forget to put the // back once you are done with a scenerio and testing out the next one.
+ 
+
+To access the C# code, please click on:
+Commercial_Controller.go

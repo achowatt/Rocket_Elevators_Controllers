@@ -48,13 +48,13 @@ namespace Commercial_Controller
         }
 
 
-        public void MoveElevator(int floor)
+        public void MoveElevator(int floor) // move elevator according to floor
         {
-            if (this.RequestList.Count() !=0)
+            while (this.RequestList.Count() > 0)
             { 
                 if (this.CurrentFloor < this.RequestList[0])
                 {
-                    while ( (this.CurrentFloor < this.RequestList[0]) && (this.RequestList.Count() != 0) )
+                    while ( this.CurrentFloor < this.RequestList[0] )
                         {   //CONVERTING NUMBERS TO READABLE FLOOR NUMBERS
                         if (this.CurrentFloor == 1)
                         {
@@ -217,16 +217,16 @@ namespace Commercial_Controller
                                     this.CloseDoor();
                                 }
                             }
+                            if (this.RequestList.Count > 0)
+                            {
+                                this.RequestFloor(this.RequestList[0]);
                         }
+                    }
                 }
             }
-            
 
-            if (this.RequestList.Count > 0)
-            {
-                this.RequestFloor(this.RequestList[0]);
-            }
         }
+
 
         public void ChangeStatus() //based on the requestList
         {
@@ -414,21 +414,22 @@ namespace Commercial_Controller
                     {
                         difference = l.Proximity;
                         selectedElevatorId = l.ID;
-                        break;
+                        
                     }
                     else if (l.RequestList[0] == floor)
                     {
                         difference = l.Proximity;
                         selectedElevatorId = l.ID;
-                        break;
+                        
                     }
 
                     else if (l.Proximity < difference)
                     {
                         difference = l.Proximity;
                         selectedElevatorId = l.ID;
-                        break;
+                        
                     }
+                    break;
                 }
             }
             else if (idleElevators.Count > 0)
@@ -438,14 +439,14 @@ namespace Commercial_Controller
                     if (j.CurrentFloor == floor)
                     {
                         selectedElevatorId = j.ID;
-                        break;
+                        
                     }
                     else if (j.Proximity < difference)
                     {
                         difference = j.Proximity;
                         selectedElevatorId = j.ID;
-                        break;
                     }
+                    break;
                 }
             }
             else
@@ -458,6 +459,7 @@ namespace Commercial_Controller
                         selectedElevatorId = r.ID;
                         break;
                     }
+                    break;
                 }
             }
             return selectedElevatorId;
